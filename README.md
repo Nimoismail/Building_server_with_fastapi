@@ -18,7 +18,7 @@ This project is a RESTful API built using the FastAPI framework and SQLAlchemy O
 
 ## Clone the repository:
 
-git@github.com:Nimoismail/Building_server_with_fastapi.git
+https://github.com/Nimoismail/Building_server_with_fastapi
 
 ## Initialize a virtual environment using Pipenv:
 
