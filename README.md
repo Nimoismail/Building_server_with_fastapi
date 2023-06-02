@@ -97,7 +97,7 @@ Make sure to deploy by merging code to master. It will automatically handle ever
 
 # License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License.
 
 # Author
 
