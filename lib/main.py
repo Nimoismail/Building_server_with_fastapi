@@ -1,86 +1,77 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
-# from app.routes import routerz
 
+# Create the database engine
+engine = create_engine("sqlite:///./my_database.db")
 
-# Create the FastAPI instance
-app = FastAPI()
+# Create a session factory
+Session = sessionmaker(bind=engine)
 
-
-# Create the database connection
-SQLALCHEMY_DATABASE_URL = "sqlite:///./my_database.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# create the base declaration models
 Base = declarative_base()
 
-
-# Define the database model
-class MyData(Base):
-    __tablename__ = "mydata"
+# Define the item model
+class Item(Base):
+    __tablename__ = "items"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     description = Column(String)
 
-
 # Create the database tables
 Base.metadata.create_all(bind=engine)
 
+# Create the FastAPI instance
+app = FastAPI()
 
 # Pydantic model for POST and PUT requests
-class MyDataCreateUpdate(BaseModel):
+class ItemCreate(BaseModel):
     name: str
     description: str
 
-
 # Pydantic model for GET responses
-class MyDataResponse(BaseModel):
+class ItemResponse(BaseModel):
     id: int
     name: str
     description: str
 
-
 # Function to get a database session
 def get_db():
-    db = SessionLocal()
+    db = Session()
     try:
         yield db
     finally:
         db.close()
 
-
 # GET all data
 @app.get("/get_all_endpoint/")
-def get_all_data(db: Session = Depends(get_db)):
-    data = db.query(MyData).all()
-    return data
-
+def get_all_items(db: Session = Depends(get_db)):
+    items = db.query(Item).all()
+    return items
 
 # GET single data
 @app.get("/get_one_endpoint/{id}")
 def get_single_data(id: int, db: Session = Depends(get_db)):
-    data = db.query(MyData).filter(MyData.id == id).first()
-    if data is None:
+    item = db.query(Item).filter(Item.id == id).first()
+    if item is None:
         raise HTTPException(status_code=404, detail="Data not found")
-    return data
-
+    return item
 
 # POST new data
 @app.post("/post_endpoint/")
-def create_data(item: MyDataCreateUpdate, db: Session = Depends(get_db)):
-    data = MyData(name=item.name, description=item.description)
+def create_data(item: ItemCreate, db: Session = Depends(get_db)):
+    data = Item(name=item.name, description=item.description)
     db.add(data)
     db.commit()
     db.refresh(data)
     return data
 
-
 # PUT full update of data
 @app.put("/put_endpoint/{id}")
-def update_data(id: int, item: MyDataCreateUpdate, db: Session = Depends(get_db)):
-    data = db.query(MyData).filter(MyData.id == id).first()
+def update_data(id: int, item: ItemCreate, db: Session = Depends(get_db)):
+    data = db.query(Item).filter(Item.id == id).first()
     if data is None:
         raise HTTPException(status_code=404, detail="Data not found")
     data.name = item.name
@@ -89,11 +80,10 @@ def update_data(id: int, item: MyDataCreateUpdate, db: Session = Depends(get_db)
     db.refresh(data)
     return data
 
-
 # PATCH partial update of data
 @app.patch("/patch_endpoint/{id}")
-def partial_update_data(id: int, item: MyDataCreateUpdate, db: Session = Depends(get_db)):
-    data = db.query(MyData).filter(MyData.id == id).first()
+def partial_update_data(id: int, item: ItemCreate, db: Session = Depends(get_db)):
+    data = db.query(Item).filter(Item.id == id).first()
     if data is None:
         raise HTTPException(status_code=404, detail="Data not found")
     if item.name:
@@ -104,11 +94,10 @@ def partial_update_data(id: int, item: MyDataCreateUpdate, db: Session = Depends
     db.refresh(data)
     return data
 
-
 # DELETE a piece of data
 @app.delete("/delete_endpoint/{id}")
 def delete_data(id: int, db: Session = Depends(get_db)):
-    data = db.query(MyData).filter(MyData.id == id).first()
+    data = db.query(Item).filter(Item.id == id).first()
     if data is None:
         raise HTTPException(status_code=404, detail="Data not found")
     db.delete(data)
