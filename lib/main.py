@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel
 
 # Creating the database engine
-engine = create_engine("sqlite:///./my_database.db")
+engine = create_engine("sqlite:///database.db")
 
 # Creating a session factory
 Session = sessionmaker(bind=engine)
@@ -28,7 +28,6 @@ app = FastAPI()
 
 # Pydantic model for POST and PUT requests
 class ItemCreate(BaseModel):
-
     name: str
     description: str
 
@@ -103,4 +102,4 @@ def delete_item(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Item not found")
     db.delete(data)
     db.commit()
-    return {"message": "Data deleted"}
+    return {"message": "Item deleted"}
